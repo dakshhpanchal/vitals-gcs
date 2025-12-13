@@ -24,7 +24,7 @@ def main():
         )
     )
 
-    gps = {"lat": None, "lon": None}
+    gps = {"lat": None, "lon": None, "sats": None}
     vfr = {"alt": None, "speed": None}
 
     def poll_mav():
@@ -37,6 +37,7 @@ def main():
         if mtype == "GPS_RAW_INT":
             gps["lat"] = msg.lat / 1e7
             gps["lon"] = msg.lon / 1e7
+            gps["sats"] = msg.satellites_visible
 
         elif mtype == "VFR_HUD":
             vfr["alt"] = msg.alt
@@ -44,7 +45,12 @@ def main():
 
         text = ""
         if gps["lat"] is not None:
-            text += f"GPS:\n  Lat: {gps['lat']:.6f}\n  Lon: {gps['lon']:.6f}\n\n"
+            text += (
+                "GPS:\n"
+                f"  Lat: {gps['lat']:.6f}\n"
+                f"  Lon: {gps['lon']:.6f}\n"
+                f"  Satellites: {gps['sats']}\n\n"
+            )
             ui.map.update_position(gps["lat"], gps["lon"])
         
         if vfr["alt"] is not None:
