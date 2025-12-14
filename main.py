@@ -1,14 +1,20 @@
 import sys
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QTimer
-
+import signal
 from scripts.ui.dashboard import Dashboard
 from scripts.controller.gamepad import ControllerReader
 from scripts.mavlink.mav_client import MAVClient
 
 def main():
     app = QApplication(sys.argv)
-
+    def handle_sigint(*args):
+        QApplication.quit()
+    signal.signal(signal.SIGINT, handle_sigint)
+    
+    sig_timer = QTimer()
+    sig_timer.start(100)
+    sig_timer.timeout.connect(lambda: None)
     ui = Dashboard()
     ui.resize(1600, 900)
     ui.show()
@@ -17,6 +23,7 @@ def main():
     mav.request_stream()
 
     controller = ControllerReader()
+    app.aboutToQuit.connect(controller.stop)
     controller.updated.connect(
         lambda lx, ly, rx, ry: (
             ui.left_joy.update_stick(lx, ly),

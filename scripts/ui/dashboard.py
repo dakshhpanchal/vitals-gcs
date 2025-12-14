@@ -4,6 +4,8 @@ from .joystick import JoystickWidget
 from .map_widget import MapWidget
 from .camera_widget import CameraWidget
 from .log_widget import LogWidget
+from .map_overlay import MapOverlay
+
 
 class Dashboard(QWidget):
     def __init__(self):
@@ -25,7 +27,7 @@ class Dashboard(QWidget):
         )
 
         self.log_widget = LogWidget()
-        
+
         left_col.addWidget(self.video, stretch=2)
         left_col.addWidget(self.log_widget, stretch=1)
 
@@ -45,9 +47,18 @@ class Dashboard(QWidget):
         """)
         right.addWidget(self.telemetry, stretch=2)
 
+        self.map_container = QWidget()
+        self.map_container.setStyleSheet("background: transparent;")
+        map_layout = QVBoxLayout(self.map_container)
+        map_layout.setContentsMargins(0, 0, 0, 0)
+
         self.map = MapWidget()
         self.map.setMinimumHeight(250)
-        right.addWidget(self.map, stretch=3)
+        map_layout.addWidget(self.map)
+
+        self.map_overlay = MapOverlay(self.map_container, self.map)
+
+        right.addWidget(self.map_container, stretch=3)
 
         joys = QWidget()
         joys.setStyleSheet("background:#111; border-radius:14px;")
@@ -70,6 +81,6 @@ class Dashboard(QWidget):
 
     def update_telem(self, text):
         self.telemetry.setText(text)
-        
+
     def add_log(self, text):
         self.log_widget.add_log(text)
