@@ -22,6 +22,11 @@ class MapWidget(QWebEngineView):
             f"addUserMarker({lat}, {lon}, `{label}`);"
         )
 
+    def clear_path(self):
+        if not self._loaded:
+            return
+        self.page().runJavaScript("clearRoute();")
+
     def _html(self):
         return """
 <!DOCTYPE html>
@@ -71,13 +76,9 @@ var redIcon = L.icon({
 
 function updateGPS(lat, lon){
     var point = [lat, lon];
-
     gpsMarker.setLatLng(point);
     map.setView(point, map.getZoom());
-
-    if (!lastPoint ||
-        lastPoint[0] !== lat ||
-        lastPoint[1] !== lon) {
+    if (!lastPoint || lastPoint[0] !== lat || lastPoint[1] !== lon) {
         routeLine.addLatLng(point);
         lastPoint = point;
     }
@@ -87,6 +88,11 @@ function addUserMarker(lat, lon, label){
     L.marker([lat, lon], {icon: redIcon})
         .addTo(map)
         .bindPopup(label);
+}
+
+function clearRoute(){
+    routeLine.setLatLngs([]);
+    lastPoint = null;
 }
 </script>
 </body>

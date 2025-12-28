@@ -1,10 +1,10 @@
 from pymavlink import mavutil
-import time
 
 class MAVClient:
     def __init__(self, udp_ip="127.0.0.1", udp_port=14550):
         self.master = mavutil.mavlink_connection(f"udp:{udp_ip}:{udp_port}")
         self.master.wait_heartbeat()
+        self.mav = self.master.mav
 
     def set_mode(self, mode):
         mode_id = self.master.mode_mapping()[mode]
@@ -25,4 +25,3 @@ class MAVClient:
 
     def read(self):
         return self.master.recv_match(blocking=False)
-

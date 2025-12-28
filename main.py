@@ -30,10 +30,15 @@ def main():
 
     logger = FlightLogger()
 
+    joy = {"lx": 0.0, "ly": 0.0, "rx": 0.0, "ry": 0.0}
+    gcs_control_enabled = False
+    rc8_raw = None
+
     controller = ControllerReader()
     app.aboutToQuit.connect(controller.stop)
     controller.updated.connect(
         lambda lx, ly, rx, ry: (
+            joy.update({"lx": lx, "ly": ly, "rx": rx, "ry": ry}),
             ui.left_joy.update_stick(lx, ly),
             ui.right_joy.update_stick(rx, ry)
         )
@@ -55,7 +60,27 @@ def main():
     }
     flight = {"mode": None, "armed": None}
 
+    def send_manual_control(lx, ly, rx, ry):
+        def clamp(v, lo, hi):
+            return max(lo, min(hi, v))
+
+        pitch = int(clamp(ry * 1000, -1000, 1000))
+        roll = int(clamp(rx * 1000, -1000, 1000))
+        throttle = int(clamp((ly + 1) * 500, 0, 1000))
+        yaw = int(clamp(lx * 1000, -1000, 1000))
+        pitch = -pitch
+        mav.mav.manual_control_send(
+            mav.master.target_system,
+            pitch,
+            roll,
+            throttle,
+            yaw,
+            0
+        )
+
     def poll_mav():
+        nonlocal gcs_control_enabled, rc8_raw
+
         while True:
             msg = mav.read()
             if not msg:
@@ -94,14 +119,16 @@ def main():
                     msg.base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED
                 )
 
+            elif mtype == "RC_CHANNELS":
+                rc8_raw = msg.chan8_raw
+
             elif mtype == "STATUSTEXT":
-                text = msg.text
-                if isinstance(text, bytes):
-                    text = text.decode(errors="ignore").rstrip("\x00")
-                else:
-                    text = str(text).rstrip("\x00")
+                text = msg.text.decode(errors="ignore").rstrip("\x00") if isinstance(msg.text, bytes) else str(msg.text).rstrip("\x00")
                 ui.add_log(text)
                 logger.add_error(text)
+
+        if rc8_raw is not None:
+            gcs_control_enabled = rc8_raw > 1500
 
         if gps["lat"] is not None:
             ui.map.update_position(gps["lat"], gps["lon"])
@@ -115,10 +142,18 @@ def main():
                 f"  Satellites: {gps['sats']}\n\n"
             )
         if vfr["alt"] is not None:
-            telem += f"Altitude: {vfr['alt']:.2f} cm\n"
+            telem += f"Altitude: {vfr['alt']:.2f} m\n"
             telem += f"Speed: {vfr['speed']:.2f} m/s\n"
         if telem:
             ui.update_telem(telem)
+
+        if gcs_control_enabled:
+            send_manual_control(
+                joy["lx"],
+                joy["ly"],
+                joy["rx"],
+                joy["ry"]
+            )
 
     def log_tick():
         logger.write({

@@ -48,7 +48,6 @@ class MapOverlay(QWidget):
         self.toggle = QToolButton()
         self.toggle.setToolButtonStyle(Qt.ToolButtonTextOnly)
         self.toggle.setLayoutDirection(Qt.RightToLeft)
-
         self.toggle.setText("📍")
         self.toggle.clicked.connect(self.toggle_panel)
         self.layout.addWidget(self.toggle)
@@ -67,13 +66,17 @@ class MapOverlay(QWidget):
         self.label = QLineEdit()
         self.label.setPlaceholderText("Label (optional)")
 
-        btn = QPushButton("Add Marker")
-        btn.clicked.connect(self.add_marker)
+        add_btn = QPushButton("Add Marker")
+        add_btn.clicked.connect(self.add_marker)
+
+        clear_btn = QPushButton("Clear Path")
+        clear_btn.clicked.connect(self.clear_path)
 
         panel_layout.addWidget(self.lat)
         panel_layout.addWidget(self.lon)
         panel_layout.addWidget(self.label)
-        panel_layout.addWidget(btn)
+        panel_layout.addWidget(add_btn)
+        panel_layout.addWidget(clear_btn)
 
         self.panel.setVisible(False)
         self.layout.addWidget(self.panel)
@@ -88,7 +91,7 @@ class MapOverlay(QWidget):
         self.reposition()
 
     def adjust_size(self):
-        self.setFixedHeight(50 if not self.expanded else 200)
+        self.setFixedHeight(50 if not self.expanded else 240)
 
     def reposition(self):
         self.move(
@@ -109,3 +112,6 @@ class MapOverlay(QWidget):
             self.map.add_marker(lat, lon, label)
         except ValueError:
             pass
+
+    def clear_path(self):
+        self.map.clear_path()
