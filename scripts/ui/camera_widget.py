@@ -37,6 +37,8 @@ class CameraWidget(QWidget):
 
     def update_frame(self):
         ret, frame = self.cap.read()
+        frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+
         if not ret:
             return
 
