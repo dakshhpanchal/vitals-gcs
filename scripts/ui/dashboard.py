@@ -5,10 +5,11 @@ from .map_widget import MapWidget
 from .camera_widget import CameraWidget
 from .log_widget import LogWidget
 from .map_overlay import MapOverlay
+from .control_panel import ControlPanel
 
 
 class Dashboard(QWidget):
-    def __init__(self):
+    def __init__(self, mav):
         super().__init__()
         self.setWindowTitle("Drone UI")
         self.setStyleSheet("background-color:#1e1e1e;")
@@ -21,11 +22,6 @@ class Dashboard(QWidget):
         left_col.setSpacing(12)
 
         self.video = CameraWidget()
-        self.video.setSizePolicy(
-            QSizePolicy.Expanding,
-            QSizePolicy.Expanding
-        )
-
         self.log_widget = LogWidget()
 
         left_col.addWidget(self.video, stretch=2)
@@ -45,19 +41,19 @@ class Dashboard(QWidget):
             color:white;
             font-size:14px;
         """)
-        right.addWidget(self.telemetry, stretch=2)
+        right.addWidget(self.telemetry, stretch=1)
+
+        self.control_panel = ControlPanel(mav)
+        right.addWidget(self.control_panel, stretch=0)
 
         self.map_container = QWidget()
-        self.map_container.setStyleSheet("background: transparent;")
         map_layout = QVBoxLayout(self.map_container)
         map_layout.setContentsMargins(0, 0, 0, 0)
 
         self.map = MapWidget()
-        self.map.setMinimumHeight(250)
         map_layout.addWidget(self.map)
 
         self.map_overlay = MapOverlay(self.map_container, self.map)
-
         right.addWidget(self.map_container, stretch=3)
 
         joys = QWidget()

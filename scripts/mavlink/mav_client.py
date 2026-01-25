@@ -25,3 +25,15 @@ class MAVClient:
 
     def read(self):
         return self.master.recv_match(blocking=False)
+    
+    def set_servo(self, servo, pwm):
+        self.master.mav.command_long_send(
+        self.master.target_system,
+        self.master.target_component,
+        mavutil.mavlink.MAV_CMD_DO_SET_SERVO,
+        0,
+        servo,
+        pwm,
+        0, 0, 0, 0, 0
+    )
+

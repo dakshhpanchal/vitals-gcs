@@ -21,12 +21,12 @@ def main():
     sig_timer.start(100)
     sig_timer.timeout.connect(lambda: None)
 
-    ui = Dashboard()
-    ui.resize(1600, 900)
-    ui.show()
-
     mav = MAVClient()
     mav.request_stream()
+
+    ui = Dashboard(mav)
+    ui.resize(1600, 900)
+    ui.show()
 
     logger = FlightLogger()
 
