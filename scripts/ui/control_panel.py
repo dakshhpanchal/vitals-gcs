@@ -32,22 +32,24 @@ class ControlPanel(QWidget):
             (1400, "Camera 0°"),
         ]
 
-        self.servo2 = False
         self.mode_idx = 0
         self.modes = ["STABILIZE", "LOITER", "ALT_HOLD"]
 
         self.camera_btn = QPushButton("Camera 0°")
         self.camera_btn.clicked.connect(self.cycle_camera)
 
-        self.servo2_btn = QPushButton("Gripper")
-        self.servo2_btn.setCheckable(True)
-        self.servo2_btn.clicked.connect(self.toggle_servo2)
+        self.pick_btn = QPushButton("Pick")
+        self.pick_btn.clicked.connect(self.pick_gripper)
+
+        self.drop_btn = QPushButton("Drop")
+        self.drop_btn.clicked.connect(self.drop_gripper)
 
         self.mode_btn = QPushButton("STABILIZE")
         self.mode_btn.clicked.connect(self.cycle_mode)
 
         layout.addWidget(self.camera_btn)
-        layout.addWidget(self.servo2_btn)
+        layout.addWidget(self.pick_btn)
+        layout.addWidget(self.drop_btn)
         layout.addWidget(self.mode_btn)
 
     def cycle_camera(self):
@@ -56,10 +58,11 @@ class ControlPanel(QWidget):
         self.camera_btn.setText(label)
         self.mav.set_servo(6, pwm)
 
-    def toggle_servo2(self):
-        self.servo2 = not self.servo2
-        pwm = 1900 if self.servo2 else 1100
-        self.mav.set_servo(8, pwm)
+    def pick_gripper(self):
+        self.mav.set_servo(8, 1600)
+
+    def drop_gripper(self):
+        self.mav.set_servo(8, 1900)
 
     def cycle_mode(self):
         self.mode_idx = (self.mode_idx + 1) % 3
