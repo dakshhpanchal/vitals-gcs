@@ -62,7 +62,7 @@ class ControlPanel(QWidget):
         self.mav.set_servo(8, 1600)
 
     def drop_gripper(self):
-        self.mav.set_servo(8, 1900)
+        self.mav.set_servo(8, 2000)
 
     def cycle_mode(self):
         self.mode_idx = (self.mode_idx + 1) % 3
